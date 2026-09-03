@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ぽてまるの論理回路ラボ 〜情報Iをたのしく攻略〜</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tone.js for cute game sound effects -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+  <!-- Google Fonts: Zen Maru Gothic for super cute, rounded typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Zen Maru Gothic"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            pote: {
+              bg: '#FFFDF9',
+              card: '#FFFFFF',
+              pink: '#FFD7DE',
+              hotpink: '#FF6B8B',
+              yellow: '#FFF099',
+              amber: '#FFB800',
+              blue: '#D2EEFF',
+              darkblue: '#4A86E8',
+              green: '#DCF5D6',
+              darkgreen: '#54B435',
+              purple: '#EBD8FC',
+              text: '#4A3B32',
+              subtext: '#8C7A6B'
+            }
+          },
+          boxShadow: {
+            'cute': '0 8px 20px -3px rgba(255, 182, 193, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            'bubble': '0 6px 0px rgba(0, 0, 0, 0.08)',
+            'switch': 'inset 0 2px 4px rgba(0,0,0,0.1), 0 4px 0px #CBD5E1'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: "Zen Maru Gothic", sans-serif;
+      background-color: #FFF9F2;
+      color: #4A3B32;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Bouncy animations */
+    @keyframes hop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .animate-hop {
+      animation: hop 2s ease-in-out infinite;
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(2deg); }
+    }
+    .animate-wiggle {
+      animation: wiggle 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { filter: drop-shadow(0 0 6px #FFD700); }
+      50% { filter: drop-shadow(0 0 20px #FF9800); }
+    }
+    .glow-active {
+      animation: pulse-glow 1.2s infinite alternate;
+    }
+
+    /* Electric Current Flow Animation along circuit wires */
+    @keyframes electricFlow {
+      0% { stroke-dashoffset: 32; }
+      100% { stroke-dashoffset: 0; }
+    }
+
+    .wire-off {
+      stroke: #D1D5DB;
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transition: stroke 0.3s ease;
+    }
+
+    .wire-on {
+      stroke: #FFB800;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 10 6;
+      animation: electricFlow 0.8s linear infinite;
+      filter: drop-shadow(0 0 5px rgba(255, 184, 0, 0.85));
+      fill: none;
+      transition: stroke 0.3s ease;
+    }
+
+    /* Cute custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FFF0E5;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FFD4C2;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #FFB399;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between pb-10">
+
+  <!-- Header -->
+  <header class="w-full max-w-4xl px-4 pt-4 pb-2">
+    <div class="bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-cute border-2 border-orange-100 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <!-- SVG Mascot: ぽてまる (Potemaru) -->
+        <div class="w-12 h-12 relative flex-shrink-0 animate-hop">
+          <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <!-- Ears -->
+            <ellipse cx="32" cy="22" rx="9" ry="16" fill="#FFF9E6" stroke="#4A3B32" stroke-width="4" transform="rotate(-12 32 22)" />
+            <ellipse cx="68" cy="22" rx="9" ry="16" fill="#FFF9E6" stroke="#4A3B32" stroke-width="4" transform="rotate(12 68 22)" />
+            <ellipse cx="32" cy="22" rx="5" ry="11" fill="#FFCCD5" transform="rotate(-12 32 22)" />
+            <ellipse cx="68" cy="22" rx="5" ry="11" fill="#FFCCD5" transform="rotate(12 68 22)" />
+            <!-- Body -->
+            <ellipse cx="50" cy="58" rx="42" ry="38" fill="#FFFDF9" stroke="#4A3B32" stroke-width="4.5" />
+            <!-- Cheek blushes -->
+            <ellipse cx="28" cy="62" rx="8" ry="5" fill="#FFAEC0" opacity="0.65" />
+            <ellipse cx="72" cy="62" rx="8" ry="5" fill="#FFAEC0" opacity="0.65" />
+            <!-- Eyes -->
+            <ellipse cx="37" cy="54" rx="4" ry="5.5" fill="#4A3B32" />
+            <ellipse cx="63" cy="54" rx="4" ry="5.5" fill="#4A3B32" />
+            <circle cx="38" cy="52" r="1.5" fill="#FFFFFF" />
+            <circle cx="64" cy="52" r="1.5" fill="#FFFFFF" />
+            <!-- Mouth -->
+            <path d="M47 62 Q50 65 53 62" stroke="#4A3B32" stroke-width="3" stroke-linecap="round" fill="none" />
+            <!-- Feet -->
+            <ellipse cx="38" cy="94" rx="7" ry="5" fill="#FFFDF9" stroke="#4A3B32" stroke-width="3.5" />
+            <ellipse cx="62" cy="94" rx="7" ry="5" fill="#FFFDF9" stroke="#4A3B32" stroke-width="3.5" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl md:text-2xl font-black text-[#5C3826] tracking-tight">ぽてまる論理回路ラボ</h1>
+            <span class="text-xs bg-yellow-200 text-yellow-800 font-bold px-2 py-0.5 rounded-full">高校・情報I</span>
+          </div>
+          <p class="text-xs text-[#8C7A6B]">電気がサーッと流れて0と1が動くッ…！わァ…！</p>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center gap-2">
+        <button id="soundToggleBtn" onclick="toggleSound()" class="p-2 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-sm font-bold text-amber-800 flex items-center gap-1 transition-all active:scale-95 shadow-sm">
+          <span id="soundIcon">🔊</span>
+          <span class="hidden sm:inline text-xs">おと</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <nav class="grid grid-cols-3 gap-2 mt-3 text-center">
+      <button onclick="switchTab('learn')" id="tab-learn" class="tab-btn py-2.5 px-2 rounded-2xl font-black text-sm transition-all duration-200 bg-orange-50/70 border-2 border-transparent text-[#8C7A6B] hover:bg-white">
+        📖 まなびノート
+      </button>
+      <button onclick="switchTab('lab')" id="tab-lab" class="tab-btn py-2.5 px-2 rounded-2xl font-black text-sm transition-all duration-200 bg-white border-2 border-pink-300 text-pink-700 shadow-md transform -translate-y-0.5">
+        💡 つながる配線ラボ
+      </button>
+      <button onclick="switchTab('game')" id="tab-game" class="tab-btn py-2.5 px-2 rounded-2xl font-black text-sm transition-all duration-200 bg-orange-50/70 border-2 border-transparent text-[#8C7A6B] hover:bg-white">
+        ⚔️ ゲート討伐ゲーム
+      </button>
+    </nav>
+  </header>
+
+  <main class="w-full max-w-4xl px-4 mt-2 flex-1">
+
+    <!-- ============================================================ -->
+    <!-- TAB 1: LEARN (高校情報Iの基礎・教科書解説・真理値表) -->
+    <!-- ============================================================ -->
+    <section id="view-learn" class="hidden space-y-4">
+      <!-- Mascot Chat Bubble Card -->
+      <div class="bg-white rounded-3xl p-5 border-2 border-pink-200 shadow-cute relative overflow-hidden">
+        <div class="flex items-start gap-4">
+          <!-- Robot Sensei SVG (忠実なヘッドセット＋リボンタイ姿) -->
+          <div class="w-14 h-14 flex-shrink-0 animate-wiggle">
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+              <!-- Ears / Yellow Antennas -->
+              <ellipse cx="28" cy="20" rx="9" ry="17" fill="#FDD835" stroke="#424242" stroke-width="4" transform="rotate(-15 28 20)"/>
+              <ellipse cx="72" cy="20" rx="9" ry="17" fill="#FDD835" stroke="#424242" stroke-width="4" transform="rotate(15 72 20)"/>
+              <!-- Headset band -->
+              <path d="M 22 45 A 32 32 0 0 1 78 45" fill="none" stroke="#424242" stroke-width="6" stroke-linecap="round"/>
+              <rect x="14" y="38" width="10" height="22" rx="4" fill="#616161" stroke="#333" stroke-width="2.5"/>
+              <rect x="76" y="38" width="10" height="22" rx="4" fill="#616161" stroke="#333" stroke-width="2.5"/>
+              <!-- Mic -->
+              <path d="M 78 52 Q 72 68 62 70" fill="none" stroke="#424242" stroke-width="3.5" stroke-linecap="round"/>
+              <circle cx="60" cy="70" r="4.5" fill="#333"/>
+              <!-- Body -->
+              <ellipse cx="50" cy="60" rx="38" ry="32" fill="#FFFFFF" stroke="#424242" stroke-width="4"/>
+              <!-- Screen Eyes -->
+              <rect x="25" y="44" width="50" height="24" rx="8" fill="#374151"/>
+              <circle cx="38" cy="56" r="4.5" fill="none" stroke="#00E5FF" stroke-width="3"/>
+              <circle cx="62" cy="56" r="4.5" fill="none" stroke="#00E5FF" stroke-width="3"/>
+              <polygon points="50,55 48,58 52,58" fill="#00E5FF"/>
+              <!-- Red Bowtie -->
+              <polygon points="42,78 50,81 42,84" fill="#EF5350"/>
+              <polygon points="58,78 50,81 58,84" fill="#EF5350"/>
+              <circle cx="50" cy="81" r="2.5" fill="#FF8A80"/>
+              <!-- Blue Pants/Base -->
+              <ellipse cx="50" cy="88" rx="26" ry="6" fill="#29B6F6"/>
+            </svg>
+          </div>
+
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="bg-blue-100 text-blue-700 font-bold px-2.5 py-0.5 rounded-full text-xs">ロボ先生</span>
+              <span class="text-xs text-gray-500">情報I 教科書 項目30より</span>
+            </div>
+            <p class="text-sm mt-1 text-[#4A3B32] leading-relaxed">
+              「コンピュータは魔法の箱でも小人が計算してるわけでもありません！<strong class="text-pink-600 bg-pink-50 px-1 rounded">0</strong>と<strong class="text-pink-600 bg-pink-50 px-1 rounded">1</strong>の<strong>論理値（真理値）</strong>を、スイッチと配線で組み合わせた<strong>『論理回路』</strong>で計算しているんですよ！」
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gate Cards Explorer -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- AND回路 -->
+        <div class="bg-white rounded-3xl p-5 border-2 border-amber-200 shadow-cute flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-base font-black text-amber-900 flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
+                AND回路（論理積）
+              </span>
+              <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-lg font-bold">直列つなぎ</span>
+            </div>
+            <p class="text-xs text-[#6B5A4E] mb-3 leading-relaxed">
+              <span class="font-bold text-amber-600">「入力がすべて1のときだけ出力が1」</span>になる回路！<br>
+              🍰 <strong>たとえ：</strong>メイちゃんと先生の<strong>両方がやる気スイッチON（1）</strong>じゃないと授業が進まない（1）！
+            </p>
+          </div>
+          <div class="bg-amber-50/60 rounded-2xl p-2.5 border border-amber-100">
+            <div class="text-[11px] font-bold text-amber-800 mb-1 flex justify-between">
+              <span>真理値表 (A AND B)</span>
+              <span>両方1で点灯！</span>
+            </div>
+            <table class="w-full text-xs text-center border-collapse">
+              <tr class="bg-amber-200/50 text-amber-900 font-bold rounded">
+                <th class="py-1">A</th><th class="py-1">B</th><th class="py-1 text-pink-600 font-black">出力 (X)</th>
+              </tr>
+              <tr class="border-b border-amber-100"><td>0</td><td>0</td><td class="font-bold text-gray-400">0</td></tr>
+              <tr class="border-b border-amber-100"><td>0</td><td>1</td><td class="font-bold text-gray-400">0</td></tr>
+              <tr class="border-b border-amber-100"><td>1</td><td>0</td><td class="font-bold text-gray-400">0</td></tr>
+              <tr class="bg-amber-100/70 font-bold text-amber-900"><td>1</td><td>1</td><td class="text-pink-600 font-black">1 ★</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- OR回路 -->
+        <div class="bg-white rounded-3xl p-5 border-2 border-sky-200 shadow-cute flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-base font-black text-sky-900 flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full bg-sky-400 inline-block"></span>
+                OR回路（論理和）
+              </span>
+              <span class="text-xs bg-sky-100 text-sky-800 px-2 py-0.5 rounded-lg font-bold">並列つなぎ</span>
+            </div>
+            <p class="text-xs text-[#6B5A4E] mb-3 leading-relaxed">
+              <span class="font-bold text-sky-600">「どれか1つでも1なら出力が1」</span>になる回路！<br>
+              🍪 <strong>たとえ：</strong>メイちゃんか先生の<strong>どちらか片方でもお菓子を持ってたら</strong>、おやつタイム開始（1）！
+            </p>
+          </div>
+          <div class="bg-sky-50/60 rounded-2xl p-2.5 border border-sky-100">
+            <div class="text-[11px] font-bold text-sky-800 mb-1 flex justify-between">
+              <span>真理値表 (A OR B)</span>
+              <span>1つでも1なら点灯！</span>
+            </div>
+            <table class="w-full text-xs text-center border-collapse">
+              <tr class="bg-sky-200/50 text-sky-900 font-bold">
+                <th class="py-1">A</th><th class="py-1">B</th><th class="py-1 text-sky-700 font-black">出力 (X)</th>
+              </tr>
+              <tr class="border-b border-sky-100"><td>0</td><td>0</td><td class="font-bold text-gray-400">0</td></tr>
+              <tr class="border-b border-sky-100 bg-sky-50 font-semibold"><td>0</td><td>1</td><td class="text-sky-600 font-bold">1 ★</td></tr>
+              <tr class="border-b border-sky-100 bg-sky-50 font-semibold"><td>1</td><td>0</td><td class="text-sky-600 font-bold">1 ★</td></tr>
+              <tr class="bg-sky-100/70 font-bold text-sky-900"><td>1</td><td>1</td><td class="text-sky-600 font-black">1 ★</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- NOT回路 -->
+        <div class="bg-white rounded-3xl p-5 border-2 border-rose-200 shadow-cute flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-base font-black text-rose-900 flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full bg-rose-400 inline-block"></span>
+                NOT回路（論理否定）
+              </span>
+              <span class="text-xs bg-rose-100 text-rose-800 px-2 py-0.5 rounded-lg font-bold">へそまがり</span>
+            </div>
+            <p class="text-xs text-[#6B5A4E] mb-3 leading-relaxed">
+              <span class="font-bold text-rose-600">「入力と反対の結果を出力」</span>する回路！インバータとも言うよ。<br>
+              🔄 <strong>たとえ：</strong>「絶対に押すなよ！」と言われたら押したくなる（0なら1、1なら0）！
+            </p>
+          </div>
+          <div class="bg-rose-50/60 rounded-2xl p-2.5 border border-rose-100">
+            <div class="text-[11px] font-bold text-rose-800 mb-1 flex justify-between">
+              <span>真理値表 (NOT A)</span>
+              <span>あべこべ出力</span>
+            </div>
+            <table class="w-full text-xs text-center border-collapse">
+              <tr class="bg-rose-200/50 text-rose-900 font-bold">
+                <th class="py-1">入力 A</th><th class="py-1 text-rose-600 font-black">出力 (X)</th>
+              </tr>
+              <tr class="border-b border-rose-100"><td>0</td><td class="text-rose-600 font-bold">1 (点灯！) ★</td></tr>
+              <tr class="bg-rose-100/50"><td>1</td><td class="font-bold text-gray-400">0 (消灯)</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- XOR回路 -->
+        <div class="bg-white rounded-3xl p-5 border-2 border-purple-200 shadow-cute flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-base font-black text-purple-900 flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full bg-purple-400 inline-block"></span>
+                XOR回路（排他的論理和）
+              </span>
+              <span class="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-lg font-bold">加算器の心臓部</span>
+            </div>
+            <p class="text-xs text-[#6B5A4E] mb-3 leading-relaxed">
+              <span class="font-bold text-purple-600">「入力が異なるときに出力が1」</span>になる回路！<br>
+              🍰 <strong>たとえ：</strong>ショートケーキかチョコケーキ、<strong>どっちか1つだけ</strong>なら買ってあげる！両方(1,1)も無し(0,0)もダメ！
+            </p>
+          </div>
+          <div class="bg-purple-50/60 rounded-2xl p-2.5 border border-purple-100">
+            <div class="text-[11px] font-bold text-purple-800 mb-1 flex justify-between">
+              <span>真理値表 (A XOR B)</span>
+              <span>違うときだけ1！</span>
+            </div>
+            <table class="w-full text-xs text-center border-collapse">
+              <tr class="bg-purple-200/50 text-purple-900 font-bold">
+                <th class="py-1">A</th><th class="py-1">B</th><th class="py-1 text-purple-700 font-black">出力 (X)</th>
+              </tr>
+              <tr class="border-b border-purple-100"><td>0</td><td>0</td><td class="font-bold text-gray-400">0</td></tr>
+              <tr class="border-b border-purple-100 bg-purple-50"><td>0</td><td>1</td><td class="text-purple-600 font-bold">1 ★</td></tr>
+              <tr class="border-b border-purple-100 bg-purple-50"><td>1</td><td>0</td><td class="text-purple-600 font-bold">1 ★</td></tr>
+              <tr><td>1</td><td>1</td><td class="font-bold text-gray-400">0</td></tr>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Half Adder & Full Adder -->
+      <div class="bg-gradient-to-r from-amber-50 via-pink-50 to-purple-50 rounded-3xl p-5 border-2 border-pink-300 shadow-cute">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xl">🧮</span>
+          <h2 class="font-black text-base text-[#5C3826]">半加算器（Half Adder）で 1 + 1 = 10 ができる仕組み！</h2>
+        </div>
+        <p class="text-xs text-[#6B5A4E] leading-relaxed mb-3">
+          コンピュータは、スイッチの組み合わせだけで足し算をします！<br>
+          ・1桁目の答え（和 S）は、<strong>異なるときだけ1になる「XOR回路」</strong>で計算。<br>
+          ・繰り上がり（桁上げ C）は、<strong>両方1のときだけ1になる「AND回路」</strong>で計算。<br>
+          この半加算器を2つ合体させると、下の桁からの繰り上がりも足せる<strong>「全加算器」</strong>になります！
+        </p>
+        <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+          <span class="bg-white px-3 py-1 rounded-full border border-pink-200 text-pink-700 shadow-sm">和 S = A ⊕ B (XOR)</span>
+          <span class="bg-white px-3 py-1 rounded-full border border-amber-200 text-amber-700 shadow-sm">繰上 C = A ・ B (AND)</span>
+          <button onclick="goToLabAdder()" class="ml-auto bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-full shadow transition-all active:scale-95 flex items-center gap-1">
+            <span>配線を見てみる！</span> →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB 2: LAB (電線がつながり電流が走るインタラクティブラボ) -->
+    <!-- ============================================================ -->
+    <section id="view-lab" class="space-y-4">
+
+      <!-- Circuit Selection Buttons -->
+      <div class="bg-white rounded-3xl p-4 border-2 border-orange-200 shadow-cute">
+        <label class="block text-xs font-bold text-gray-500 mb-2">ためしたい回路をえらんでね（配線がつながるよ！）：</label>
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          <button onclick="selectGate('AND')" id="btn-gate-AND" class="gate-sel-btn py-2 px-1 rounded-xl text-xs font-black border-2 border-pink-400 bg-pink-50 text-pink-900 shadow-md">AND (積)</button>
+          <button onclick="selectGate('OR')" id="btn-gate-OR" class="gate-sel-btn py-2 px-1 rounded-xl text-xs font-black border-2 border-transparent bg-gray-100 text-gray-700 hover:bg-sky-50 transition">OR (和)</button>
+          <button onclick="selectGate('NOT')" id="btn-gate-NOT" class="gate-sel-btn py-2 px-1 rounded-xl text-xs font-black border-2 border-transparent bg-gray-100 text-gray-700 hover:bg-rose-50 transition">NOT (否定)</button>
+          <button onclick="selectGate('XOR')" id="btn-gate-XOR" class="gate-sel-btn py-2 px-1 rounded-xl text-xs font-black border-2 border-transparent bg-gray-100 text-gray-700 hover:bg-purple-50 transition">XOR (排他)</button>
+          <button onclick="selectGate('NAND')" id="btn-gate-NAND" class="gate-sel-btn py-2 px-1 rounded-xl text-xs font-black border-2 border-transparent bg-gray-100 text-gray-700 hover:bg-emerald-50 transition">NAND</button>
+          <button onclick="selectGate('ADDER')" id="btn-gate-ADDER" class="gate-sel-btn py-2 px-1 rounded-xl text-xs font-black border-2 border-transparent bg-pink-100 text-pink-800 hover:bg-pink-200 transition">★半加算器</button>
+        </div>
+      </div>
+
+      <!-- Main Interactive Circuit Board -->
+      <div class="bg-white rounded-3xl p-4 sm:p-6 border-2 border-amber-200 shadow-cute relative overflow-hidden">
+
+        <!-- Header Info -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span id="currentGateLabel" class="text-sm sm:text-base font-black text-amber-900 bg-amber-100 px-3 py-1 rounded-xl border border-amber-300">
+              AND回路（論理積）
+            </span>
+            <span id="gateLogicFormula" class="text-xs font-mono font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-lg">X = A・B</span>
+          </div>
+          <span id="circuitTip" class="text-xs text-pink-700 font-bold bg-pink-50 px-2.5 py-1 rounded-lg border border-pink-100">
+            スイッチをクリックして電気を流そう！
+          </span>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- DYNAMIC SVG CIRCUIT DIAGRAM CANVAS -->
+        <!-- ============================================== -->
+        <div class="w-full bg-[#FDFBF7] border-2 border-[#E8DCB8] rounded-2xl p-2 sm:p-4 relative shadow-inner">
+
+          <!-- Notice banner when wires activate -->
+          <div class="text-[11px] text-gray-500 mb-1 flex items-center justify-between px-2">
+            <span class="flex items-center gap-1 font-bold">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block animate-ping"></span>
+              黄色く光る線＝電気が流れているよ（1 / ON）
+            </span>
+            <span class="text-gray-400">灰色＝電気が止まっているよ（0 / OFF）</span>
+          </div>
+
+          <!-- SVG Visual Container with viewBox for perfect responsive lines -->
+          <div class="w-full aspect-[600/320] relative">
+            <svg id="circuitSvg" viewBox="0 0 600 320" class="w-full h-full select-none">
+              <!-- Dynamically populated wires, gates, nodes, and lamps -->
+            </svg>
+          </div>
+
+          <!-- Physical Switches Interactive Row (Easy to Tap on Mobile & Desktop) -->
+          <div class="mt-4 pt-3 border-t border-amber-100 flex flex-wrap items-center justify-around gap-4 bg-white/70 p-3 rounded-2xl">
+            <!-- Switch A Controller -->
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-black text-gray-700">入力 A</span>
+              <button id="btnSwitchA" onclick="toggleSwitch('A')" class="px-4 py-2 rounded-2xl bg-gray-200 border-2 border-gray-300 text-xs font-black text-gray-600 shadow-switch flex items-center gap-2 active:scale-95 transition-all">
+                <span id="ledDotA" class="w-3 h-3 rounded-full bg-gray-400"></span>
+                <span id="btnTextA">OFF (0)</span>
+              </button>
+            </div>
+
+            <!-- Switch B Controller (Hidden for NOT) -->
+            <div id="ctrlSwitchBWrapper" class="flex items-center gap-3">
+              <span class="text-xs font-black text-gray-700">入力 B</span>
+              <button id="btnSwitchB" onclick="toggleSwitch('B')" class="px-4 py-2 rounded-2xl bg-gray-200 border-2 border-gray-300 text-xs font-black text-gray-600 shadow-switch flex items-center gap-2 active:scale-95 transition-all">
+                <span id="ledDotB" class="w-3 h-3 rounded-full bg-gray-400"></span>
+                <span id="btnTextB">OFF (0)</span>
+              </button>
+            </div>
+
+            <!-- Fast Reset Button -->
+            <button onclick="resetSwitches()" class="text-xs font-bold text-gray-500 hover:text-pink-600 underline">
+              スイッチをリセット
+            </button>
+          </div>
+
+          <!-- Character Reaction Dialogue Box -->
+          <div class="mt-3 pt-2 flex items-center gap-3 bg-pink-50/70 p-3 rounded-2xl border border-pink-100">
+            <div id="mascotReactFace" class="w-10 h-10 flex-shrink-0 text-3xl animate-bounce">
+              🐹
+            </div>
+            <div id="mascotReactSpeech" class="text-xs text-[#5C3826] font-medium leading-relaxed">
+              スイッチをクリックしてみて！線を通って電気がシュシュッと流れるよッ…！
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB 3: GAME (ゲート討伐クエスト＆クイズバトル) -->
+    <!-- ============================================================ -->
+    <section id="view-game" class="hidden space-y-4">
+
+      <!-- Start Panel -->
+      <div id="gameStartPanel" class="bg-white rounded-3xl p-6 border-2 border-pink-300 shadow-cute text-center">
+        <div class="w-20 h-20 mx-auto mb-2 animate-wiggle">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <ellipse cx="50" cy="55" rx="40" ry="36" fill="#FFFDF9" stroke="#4A3B32" stroke-width="4.5" />
+            <ellipse cx="30" cy="22" rx="8" ry="14" fill="#FFF9E6" stroke="#4A3B32" stroke-width="4" transform="rotate(-12 30 22)" />
+            <ellipse cx="70" cy="22" rx="8" ry="14" fill="#FFF9E6" stroke="#4A3B32" stroke-width="4" transform="rotate(12 70 22)" />
+            <polygon points="50,15 56,26 44,26" fill="#FF4081" stroke="#4A3B32" stroke-width="2"/>
+            <circle cx="38" cy="52" r="4.5" fill="#4A3B32" />
+            <circle cx="62" cy="52" r="4.5" fill="#4A3B32" />
+            <ellipse cx="28" cy="58" rx="7" ry="4" fill="#FFAEC0" opacity="0.7" />
+            <ellipse cx="72" cy="58" rx="7" ry="4" fill="#FFAEC0" opacity="0.7" />
+            <path d="M46 62 Q50 67 54 62" stroke="#4A3B32" stroke-width="3" stroke-linecap="round" fill="none" />
+            <rect x="75" y="42" width="6" height="32" rx="3" fill="#8D6E63" stroke="#4A3B32" stroke-width="2.5" transform="rotate(18 75 42)"/>
+            <circle cx="82" cy="40" r="5" fill="#FFD54F" stroke="#4A3B32" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <h2 class="text-xl font-black text-[#5C3826]">論理ゲート討伐クエスト！</h2>
+        <p class="text-xs text-[#8C7A6B] mt-1 max-w-sm mx-auto leading-relaxed">
+          森にあらわれる論理モンスターたち！<br>
+          お題の回路や数値をすばやく選んで、ピカーッと撃退しようッ！
+        </p>
+
+        <div class="inline-flex items-center gap-2 bg-pink-50 border border-pink-200 px-4 py-1.5 rounded-full mt-3 text-xs font-bold text-pink-700">
+          <span>🏆 さいこう記録：</span>
+          <span id="bestScoreText">0 点 (見習い)</span>
+        </div>
+
+        <div class="mt-5 flex justify-center">
+          <button onclick="startGame()" class="px-8 py-3.5 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white font-black text-base rounded-2xl shadow-cute transition-all transform active:scale-95 flex items-center gap-2">
+            <span>討伐クエストに出発するッ！</span> ⚔️
+          </button>
+        </div>
+      </div>
+
+      <!-- Play Panel -->
+      <div id="gamePlayPanel" class="hidden bg-white rounded-3xl p-5 border-2 border-pink-300 shadow-cute space-y-4">
+        <div class="flex items-center justify-between bg-orange-50/70 p-3 rounded-2xl border border-orange-200">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold text-gray-500">たいまー:</span>
+            <span id="gameTimer" class="text-base font-black text-rose-600">30</span><span class="text-xs text-rose-500">秒</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-gray-500">第 <span id="gameRound" class="text-sm font-black text-amber-800">1</span> 問</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-xs font-bold text-gray-500">すこあ:</span>
+            <span id="gameScore" class="text-base font-black text-pink-600">0</span>
+          </div>
+        </div>
+
+        <!-- Monster Box -->
+        <div class="bg-gradient-to-b from-amber-50/50 to-pink-50/40 rounded-2xl p-4 border border-amber-200 text-center relative overflow-hidden">
+          <div class="w-20 h-20 mx-auto relative mb-1" id="monsterSprite"></div>
+          <div id="monsterSpeech" class="inline-block bg-white px-3 py-1 rounded-xl text-xs font-bold text-gray-700 shadow-sm border border-gray-200 mb-2">
+            「オイラを倒すゲートはどれだ〜！？」
+          </div>
+
+          <div class="bg-white/90 rounded-2xl p-3 border-2 border-pink-200 shadow-sm max-w-md mx-auto">
+            <div id="questionTitle" class="text-xs font-bold text-pink-600">【もんだい】</div>
+            <div id="questionBody" class="text-sm sm:text-base font-black text-[#5C3826] mt-1">
+              入力 A=1, B=1 のとき、出力が「1」になる基本回路は？
+            </div>
+          </div>
+        </div>
+
+        <!-- Choices -->
+        <div id="choicesContainer" class="grid grid-cols-2 gap-3 pt-1"></div>
+
+        <!-- Feedback Overlay -->
+        <div id="answerFeedback" class="hidden p-3 rounded-2xl text-center text-xs font-black transition-all"></div>
+      </div>
+
+      <!-- Result Screen -->
+      <div id="gameResultPanel" class="hidden bg-white rounded-3xl p-6 border-2 border-pink-300 shadow-cute text-center space-y-4">
+        <div class="text-4xl animate-bounce" id="resultEmoji">🎉</div>
+        <h3 class="text-xl font-black text-[#5C3826]" id="resultTitle">討伐完了ッ…！</h3>
+        <p class="text-xs text-gray-600" id="resultSubtitle">よくがんばったね！すばらしい成果です！</p>
+
+        <div class="bg-gradient-to-r from-yellow-50 via-pink-50 to-orange-50 border-2 border-yellow-300 rounded-2xl p-4 max-w-sm mx-auto shadow-inner">
+          <div class="text-[11px] font-bold text-yellow-800">情報I 論理回路 称号授与</div>
+          <div class="text-lg font-black text-pink-600 mt-1" id="resultRank">【論理の達人級】</div>
+          <div class="text-xs text-gray-700 mt-2">
+            スコア：<strong id="finalScore" class="text-base text-amber-700">0</strong> 点<br>
+            正解数：<span id="finalCorrect">0</span> / <span id="finalTotal">0</span> 問
+          </div>
+        </div>
+
+        <div class="flex justify-center gap-3 pt-2">
+          <button onclick="startGame()" class="px-5 py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs rounded-xl shadow transition active:scale-95">
+            もう一度あそぶ！
+          </button>
+          <button onclick="switchTab('lab')" class="px-5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs rounded-xl transition active:scale-95">
+            じっけん室で復習
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="mt-8 text-center text-xs text-[#8C7A6B]">
+    <p>ぽてまるの論理回路ラボ &bull; 高校情報I 学習サポート</p>
+    <p class="text-[11px] text-gray-400 mt-1">配線がつながると、回路の仕組みがぜんぶ見える！</p>
+  </footer>
+
+  <!-- ============================================================ -->
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <!-- ============================================================ -->
+  <script>
+    let soundEnabled = true;
+    let currentTab = 'lab';
+
+    // Lab State
+    let currentGate = 'AND';
+    let switchA = 0;
+    let switchB = 0;
+
+    // Game State
+    let gameScore = 0;
+    let gameTimerInterval = null;
+    let timeLeft = 30;
+    let currentQuestionIndex = 0;
+    let correctCount = 0;
+    let currentQuestions = [];
+
+    // Tone.js Sound Synthesizer setup
+    let synth = null;
+    let clickSynth = null;
+
+    function initAudio() {
+      if (!synth && window.Tone) {
+        try {
+          synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.2 }
+          }).toDestination();
+          synth.volume.value = -8;
+
+          clickSynth = new Tone.MembraneSynth({
+            pitchDecay: 0.05,
+            octaves: 2,
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
+          }).toDestination();
+          clickSynth.volume.value = -10;
+        } catch (e) {
+          console.log("Audio fallback");
+        }
+      }
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      initAudio();
+      try {
+        if (Tone.context.state !== 'running') {
+          Tone.start();
+        }
+        if (type === 'switch') {
+          clickSynth && clickSynth.triggerAttackRelease('C3', '16n');
+        } else if (type === 'lampOn') {
+          synth && synth.triggerAttackRelease(['E5', 'G5', 'C6'], '16n');
+        } else if (type === 'correct') {
+          synth && synth.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '16n');
+        } else if (type === 'wrong') {
+          synth && synth.triggerAttackRelease(['F4', 'D4'], '16n');
+        } else if (type === 'clear') {
+          synth && synth.triggerAttackRelease(['C5', 'G5', 'C6', 'E6'], '8n');
+        }
+      } catch (err) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundIcon').innerText = soundEnabled ? '🔊' : '🔇';
+    }
+
+    // --- Tab Navigation ---
+    function switchTab(tabId) {
+      playSound('switch');
+      currentTab = tabId;
+
+      ['learn', 'lab', 'game'].forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const tabEl = document.getElementById(`tab-${t}`);
+
+        if (t === tabId) {
+          viewEl.classList.remove('hidden');
+          tabEl.className = "tab-btn py-2.5 px-2 rounded-2xl font-black text-sm transition-all duration-200 bg-white border-2 border-pink-300 text-pink-700 shadow-md transform -translate-y-0.5";
+        } else {
+          viewEl.classList.add('hidden');
+          tabEl.className = "tab-btn py-2.5 px-2 rounded-2xl font-black text-sm transition-all duration-200 bg-orange-50/70 border-2 border-transparent text-[#8C7A6B] hover:bg-white";
+        }
+      });
+
+      if (tabId === 'lab') {
+        renderLab();
+      }
+    }
+
+    function goToLabAdder() {
+      switchTab('lab');
+      selectGate('ADDER');
+    }
+
+    // ============================================================
+    // LAB LOGIC & FULL CONNECTED CIRCUIT SVG RENDERING
+    // ============================================================
+    const GATE_METADATA = {
+      AND: {
+        name: 'AND回路（論理積）',
+        formula: 'X = A ・ B',
+        tip: '直列つなぎ！両方のスイッチをON(1)にすると電気が通るよ！',
+        hasInputB: true,
+        calc: (a, b) => (a === 1 && b === 1) ? 1 : 0
+      },
+      OR: {
+        name: 'OR回路（論理和）',
+        formula: 'X = A ＋ B',
+        tip: '並列つなぎ！どちらか片方でも電気が通れば電球が点灯するよ！',
+        hasInputB: true,
+        calc: (a, b) => (a === 1 || b === 1) ? 1 : 0
+      },
+      NOT: {
+        name: 'NOT回路（論理否定）',
+        formula: 'X = Ā (Aの否定)',
+        tip: 'へそまがり回路！スイッチOFF(0)のときだけ電気が流れるよ！',
+        hasInputB: false,
+        calc: (a) => (a === 1) ? 0 : 1
+      },
+      XOR: {
+        name: 'XOR回路（排他的論理和）',
+        formula: 'X = A ⊕ B',
+        tip: 'ケーキはどっちか1個だけ！AとBが異なるときだけ電気が流れるよ！',
+        hasInputB: true,
+        calc: (a, b) => (a !== b) ? 1 : 0
+      },
+      NAND: {
+        name: 'NAND回路（否定論理積）',
+        formula: 'X = (A ・ B)̄',
+        tip: 'ANDの逆！両方ON(1)のときだけ電気がストップして消灯するよ！',
+        hasInputB: true,
+        calc: (a, b) => (a === 1 && b === 1) ? 0 : 1
+      },
+      ADDER: {
+        name: '半加算器（足し算の基本回路）',
+        formula: 'S = A ⊕ B (和) , C = A ・ B (桁上がり)',
+        tip: 'AとBの電線が2つに枝分かれ！1 + 1 で繰り上がり(C=1)になるよ！',
+        hasInputB: true,
+        calc: (a, b) => ({
+          sum: (a !== b) ? 1 : 0,
+          carry: (a === 1 && b === 1) ? 1 : 0
+        })
+      }
+    };
+
+    function selectGate(gateKey) {
+      playSound('switch');
+      currentGate = gateKey;
+
+      Object.keys(GATE_METADATA).forEach(k => {
+        const btn = document.getElementById(`btn-gate-${k}`);
+        if (k === gateKey) {
+          btn.className = "gate-sel-btn py-2 px-1 rounded-xl text-xs font-black border-2 border-pink-400 bg-pink-50 text-pink-900 shadow-md";
+        } else {
+          btn.className = "gate-sel-btn py-2 px-1 rounded-xl text-xs font-black border-2 border-transparent bg-gray-100 text-gray-700 hover:bg-gray-200 transition";
+        }
+      });
+
+      renderLab();
+    }
+
+    function toggleSwitch(which) {
+      playSound('switch');
+      if (which === 'A') {
+        switchA = switchA === 0 ? 1 : 0;
+      } else {
+        switchB = switchB === 0 ? 1 : 0;
+      }
+      renderLab();
+    }
+
+    function resetSwitches() {
+      playSound('switch');
+      switchA = 0;
+      switchB = 0;
+      renderLab();
+    }
+
+    // Main Renderer for Circuit
+    function renderLab() {
+      const meta = GATE_METADATA[currentGate];
+      document.getElementById('currentGateLabel').innerText = meta.name;
+      document.getElementById('gateLogicFormula').innerText = meta.formula;
+      document.getElementById('circuitTip').innerText = meta.tip;
+
+      // Handle Switch B Controller visibility
+      const ctrlB = document.getElementById('ctrlSwitchBWrapper');
+      if (meta.hasInputB) {
+        ctrlB.classList.remove('opacity-20', 'pointer-events-none');
+      } else {
+        ctrlB.classList.add('opacity-20', 'pointer-events-none');
+      }
+
+      // Update Switch A button style
+      const btnA = document.getElementById('btnSwitchA');
+      const dotA = document.getElementById('ledDotA');
+      const txtA = document.getElementById('btnTextA');
+      if (switchA === 1) {
+        btnA.className = "px-4 py-2 rounded-2xl bg-amber-300 border-2 border-amber-500 text-xs font-black text-amber-900 shadow-cute flex items-center gap-2 active:scale-95 transform -translate-y-0.5 transition-all";
+        dotA.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#EF4444]";
+        txtA.innerText = "ON (1)";
+      } else {
+        btnA.className = "px-4 py-2 rounded-2xl bg-gray-200 border-2 border-gray-300 text-xs font-black text-gray-500 shadow-switch flex items-center gap-2 active:scale-95 transition-all";
+        dotA.className = "w-3 h-3 rounded-full bg-gray-400";
+        txtA.innerText = "OFF (0)";
+      }
+
+      // Update Switch B button style
+      const btnB = document.getElementById('btnSwitchB');
+      const dotB = document.getElementById('ledDotB');
+      const txtB = document.getElementById('btnTextB');
+      if (switchB === 1) {
+        btnB.className = "px-4 py-2 rounded-2xl bg-amber-300 border-2 border-amber-500 text-xs font-black text-amber-900 shadow-cute flex items-center gap-2 active:scale-95 transform -translate-y-0.5 transition-all";
+        dotB.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#EF4444]";
+        txtB.innerText = "ON (1)";
+      } else {
+        btnB.className = "px-4 py-2 rounded-2xl bg-gray-200 border-2 border-gray-300 text-xs font-black text-gray-500 shadow-switch flex items-center gap-2 active:scale-95 transition-all";
+        dotB.className = "w-3 h-3 rounded-full bg-gray-400";
+        txtB.innerText = "OFF (0)";
+      }
+
+      // Render Dynamic SVG Diagram with Connected Wires
+      const svg = document.getElementById('circuitSvg');
+
+      if (currentGate === 'ADDER') {
+        renderAdderCircuitSvg(svg);
+      } else {
+        renderStandardCircuitSvg(svg);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // SVG RENDERING: STANDARD SINGLE GATE WITH FULL WIRES
+    // -------------------------------------------------------------
+    function renderStandardCircuitSvg(svg) {
+      const meta = GATE_METADATA[currentGate];
+      const isAOn = switchA === 1;
+      const isBOn = meta.hasInputB && switchB === 1;
+      const outVal = meta.calc(switchA, switchB);
+      const isOutOn = outVal === 1;
+
+      if (isOutOn) {
+        playSound('lampOn');
+      }
+
+      // Coordinate map (viewBox 0 0 600 320)
+      // Switch A terminal: (100, 90)
+      // Switch B terminal: (100, 230)
+      // Gate input A terminal: (240, 110)
+      // Gate input B terminal: (240, 210)
+      // NOT Gate input terminal: (240, 160)
+      // Gate output terminal: (360, 160)
+      // Lamp terminal: (470, 160)
+
+      const wireAClass = isAOn ? "wire-on" : "wire-off";
+      const wireBClass = isBOn ? "wire-on" : "wire-off";
+      const wireOutClass = isOutOn ? "wire-on" : "wire-off";
+
+      // Gate symbol SVG according to ANSI standard
+      let gateShapeSvg = '';
+      if (currentGate === 'AND') {
+        gateShapeSvg = `
+          <path d="M 240 100 L 290 100 A 60 60 0 0 1 290 220 L 240 220 Z" fill="#FFF9E6" stroke="#4A3B32" stroke-width="4.5" />
+          <text x="285" y="166" font-size="16" font-weight="900" fill="#4A3B32" text-anchor="middle">AND</text>
+        `;
+      } else if (currentGate === 'OR') {
+        gateShapeSvg = `
+          <path d="M 235 100 Q 265 160 235 220 Q 310 220 355 160 Q 310 100 235 100 Z" fill="#E6F5FF" stroke="#4A3B32" stroke-width="4.5" />
+          <text x="285" y="166" font-size="16" font-weight="900" fill="#4A3B32" text-anchor="middle">OR</text>
+        `;
+      } else if (currentGate === 'NOT') {
+        gateShapeSvg = `
+          <polygon points="240,105 240,215 335,160" fill="#FFEAEB" stroke="#4A3B32" stroke-width="4.5" />
+          <circle cx="347" cy="160" r="10" fill="#FFFFFF" stroke="#4A3B32" stroke-width="4" />
+          <text x="275" y="166" font-size="15" font-weight="900" fill="#4A3B32" text-anchor="middle">NOT</text>
+        `;
+      } else if (currentGate === 'XOR') {
+        gateShapeSvg = `
+          <path d="M 225 100 Q 255 160 225 220" fill="none" stroke="#4A3B32" stroke-width="4.5" stroke-linecap="round" />
+          <path d="M 240 100 Q 270 160 240 220 Q 315 220 358 160 Q 315 100 240 100 Z" fill="#F4EDFF" stroke="#4A3B32" stroke-width="4.5" />
+          <text x="290" y="166" font-size="15" font-weight="900" fill="#4A3B32" text-anchor="middle">XOR</text>
+        `;
+      } else if (currentGate === 'NAND') {
+        gateShapeSvg = `
+          <path d="M 235 100 L 285 100 A 60 60 0 0 1 285 220 L 235 220 Z" fill="#E8F8F5" stroke="#4A3B32" stroke-width="4.5" />
+          <circle cx="352" cy="160" r="9" fill="#FFFFFF" stroke="#4A3B32" stroke-width="4" />
+          <text x="280" y="166" font-size="14" font-weight="900" fill="#4A3B32" text-anchor="middle">NAND</text>
+        `;
+      }
+
+      // Dynamic Mascot Reaction text
+      let speech = "";
+      let face = "🐹";
+      if (isOutOn) {
+        face = "✨😆✨";
+        if (currentGate === 'AND') speech = "わァ…！両方のスイッチから電気が届いて、電球がピカーッと光ったよッ！";
+        else if (currentGate === 'OR') speech = "片方でも電気が通ればOK！OR回路は並列だからバッチリ光るッ！";
+        else if (currentGate === 'NOT') speech = "スイッチOFFなのに電気がついた！へそまがりなNOT回路だッ！";
+        else if (currentGate === 'XOR') speech = "ケーキどっちか1個だけ！入力が違うから電気が通ったよッ！";
+        else speech = "条件クリア！線を通って電気が電球に届いたよッ！";
+      } else {
+        face = "🥺";
+        if (currentGate === 'AND') speech = "まだ電気が途切れてるよ…！両方のスイッチをON(1)にしてみてね！";
+        else if (currentGate === 'XOR' && isAOn && isBOn) speech = "両方ON(1,1)はダメ！XORはどっちか片方だけなんだ…！";
+        else if (currentGate === 'NOT') speech = "スイッチをONにしたから、逆に出力がストップして消灯したよ！";
+        else speech = "電球はお休み中。スイッチをポチポチ切り替えてみてね！";
+      }
+      document.getElementById('mascotReactSpeech').innerText = speech;
+      document.getElementById('mascotReactFace').innerText = face;
+
+      // Compose full SVG
+      svg.innerHTML = `
+        <!-- Background Grid Grid lines for electronics board vibe -->
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1" fill="#EADBC8" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- 1. WIRES (Switch to Gate) -->
+        <!-- Wire A -->
+        ${currentGate === 'NOT' ? `
+          <path d="M 120 90 L 170 90 L 170 160 L 240 160" class="${wireAClass}" />
+        ` : `
+          <path d="M 120 90 L 180 90 L 180 130 L 240 130" class="${wireAClass}" />
+        `}
+
+        <!-- Wire B (If exists) -->
+        ${meta.hasInputB ? `
+          <path d="M 120 230 L 180 230 L 180 190 L 240 190" class="${wireBClass}" />
+        ` : `
+          <line x1="120" y1="230" x2="240" y2="230" stroke="#E5E7EB" stroke-width="2" stroke-dasharray="4 4"/>
+          <text x="180" y="245" font-size="11" fill="#9CA3AF" text-anchor="middle">※NOTは入力Bを使いません</text>
+        `}
+
+        <!-- 2. WIRES (Gate Output to Lamp) -->
+        <path d="M ${currentGate === 'NOT' ? 357 : (currentGate === 'NAND' ? 361 : 355)} 160 L 450 160" class="${wireOutClass}" />
+
+        <!-- Current Flow Pulse Dots when active -->
+        ${isAOn ? `<circle cx="150" cy="90" r="4" fill="#FFFFFF" />` : ''}
+        ${isBOn ? `<circle cx="150" cy="230" r="4" fill="#FFFFFF" />` : ''}
+        ${isOutOn ? `<circle cx="400" cy="160" r="5" fill="#FFFFFF" />` : ''}
+
+        <!-- 3. INPUT TERMINAL A (Interactive Switch Box) -->
+        <g class="cursor-pointer" onclick="toggleSwitch('A')">
+          <rect x="25" y="60" width="95" height="60" rx="12" fill="${isAOn ? '#FEF3C7' : '#F3F4F6'}" stroke="${isAOn ? '#F59E0B' : '#D1D5DB'}" stroke-width="3" />
+          <text x="72" y="85" font-size="13" font-weight="900" fill="#4A3B32" text-anchor="middle">入力 A</text>
+          <rect x="42" y="94" width="60" height="18" rx="9" fill="${isAOn ? '#10B981' : '#9CA3AF'}" />
+          <circle cx="${isAOn ? 88 : 56}" cy="103" r="7" fill="#FFFFFF" />
+          <text x="${isAOn ? 62 : 82}" y="107" font-size="10" font-weight="900" fill="#FFFFFF" text-anchor="middle">${isAOn ? '1' : '0'}</text>
+          <!-- Terminal Pin -->
+          <circle cx="120" cy="90" r="5" fill="${isAOn ? '#F59E0B' : '#9CA3AF'}" stroke="#4A3B32" stroke-width="2" />
+        </g>
+
+        <!-- 4. INPUT TERMINAL B (Interactive Switch Box) -->
+        ${meta.hasInputB ? `
+        <g class="cursor-pointer" onclick="toggleSwitch('B')">
+          <rect x="25" y="200" width="95" height="60" rx="12" fill="${isBOn ? '#FEF3C7' : '#F3F4F6'}" stroke="${isBOn ? '#F59E0B' : '#D1D5DB'}" stroke-width="3" />
+          <text x="72" y="225" font-size="13" font-weight="900" fill="#4A3B32" text-anchor="middle">入力 B</text>
+          <rect x="42" y="234" width="60" height="18" rx="9" fill="${isBOn ? '#10B981' : '#9CA3AF'}" />
+          <circle cx="${isBOn ? 88 : 56}" cy="243" r="7" fill="#FFFFFF" />
+          <text x="${isBOn ? 62 : 82}" y="247" font-size="10" font-weight="900" fill="#FFFFFF" text-anchor="middle">${isBOn ? '1' : '0'}</text>
+          <!-- Terminal Pin -->
+          <circle cx="120" cy="230" r="5" fill="${isBOn ? '#F59E0B' : '#9CA3AF'}" stroke="#4A3B32" stroke-width="2" />
+        </g>
+        ` : ''}
+
+        <!-- 5. GATE SYMBOL IN CENTER -->
+        <g>
+          ${gateShapeSvg}
+          <!-- Input connector pins on gate -->
+          ${currentGate === 'NOT' ? `
+            <circle cx="240" cy="160" r="4" fill="${isAOn ? '#FFB800' : '#9CA3AF'}" />
+          ` : `
+            <circle cx="240" cy="130" r="4" fill="${isAOn ? '#FFB800' : '#9CA3AF'}" />
+            <circle cx="240" cy="190" r="4" fill="${isBOn ? '#FFB800' : '#9CA3AF'}" />
+          `}
+          <!-- Output connector pin -->
+          <circle cx="${currentGate === 'NOT' ? 357 : (currentGate === 'NAND' ? 361 : 355)}" cy="160" r="4" fill="${isOutOn ? '#FFB800' : '#9CA3AF'}" />
+        </g>
+
+        <!-- 6. OUTPUT LAMP / BULB -->
+        <g transform="translate(450, 110)">
+          <!-- Lamp socket -->
+          <rect x="25" y="80" width="30" height="16" rx="4" fill="#9E9E9E" stroke="#4A3B32" stroke-width="2" />
+          <!-- Lamp glow effect -->
+          ${isOutOn ? `
+            <circle cx="40" cy="45" r="48" fill="#FBBF24" opacity="0.3" class="animate-ping" />
+            <circle cx="40" cy="45" r="38" fill="#FDE047" opacity="0.5" />
+          ` : ''}
+          <!-- Glass Bulb -->
+          <ellipse cx="40" cy="45" rx="30" ry="32" fill="${isOutOn ? '#FDE047' : '#E5E7EB'}" stroke="#4A3B32" stroke-width="3.5" />
+          <!-- Filament -->
+          <path d="M 32 60 L 35 40 L 45 40 L 48 60" fill="none" stroke="${isOutOn ? '#DC2626' : '#9CA3AF'}" stroke-width="2.5" />
+          <!-- Shine highlight -->
+          <path d="M 24 35 Q 28 24 38 22" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+          <!-- Bulb Text -->
+          <text x="40" y="116" font-size="14" font-weight="900" fill="${isOutOn ? '#D97706' : '#6B7280'}" text-anchor="middle">
+            出力 X = ${outVal} ${isOutOn ? '★点灯！' : '(消灯)'}
+          </text>
+        </g>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // SVG RENDERING: HALF ADDER WITH DIVERGING BRANCHED WIRES
+    // -------------------------------------------------------------
+    function renderAdderCircuitSvg(svg) {
+      const isAOn = switchA === 1;
+      const isBOn = switchB === 1;
+      const sum = (switchA !== switchB) ? 1 : 0;      // XOR
+      const carry = (switchA === 1 && switchB === 1) ? 1 : 0; // AND
+
+      if (sum === 1 || carry === 1) {
+        playSound('lampOn');
+      }
+
+      const wireAClass = isAOn ? "wire-on" : "wire-off";
+      const wireBClass = isBOn ? "wire-on" : "wire-off";
+      const wireSumClass = sum === 1 ? "wire-on" : "wire-off";
+      const wireCarryClass = carry === 1 ? "wire-on" : "wire-off";
+
+      let speech = "";
+      let face = "🐹";
+      if (switchA === 1 && switchB === 1) {
+        speech = "わァ…！1 ＋ 1 ＝ 10 (イチゼロ) だッ！下のAND回路に電気が揃って桁上がり(C=1)したよッ！";
+        face = "👑🤩👑";
+      } else if (sum === 1) {
+        speech = "1 ＋ 0 ＝ 1！上のXOR回路に電気が通って、和のSだけがピカッと1になったね！";
+        face = "🍓😆🍓";
+      } else {
+        speech = "0 ＋ 0 ＝ 0！どちらの電線も電気が止まっているよ。スイッチをONにしてみてね！";
+        face = "💤";
+      }
+      document.getElementById('mascotReactSpeech').innerText = speech;
+      document.getElementById('mascotReactFace').innerText = face;
+
+      svg.innerHTML = `
+        <defs>
+          <pattern id="gridAdder" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1" fill="#EADBC8" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#gridAdder)" />
+
+        <!-- Circuit Box Boundary for Half Adder IC -->
+        <rect x="210" y="25" width="180" height="270" rx="20" fill="#FFF5F7" stroke="#F472B6" stroke-width="3" stroke-dasharray="8 4" />
+        <text x="300" y="46" font-size="13" font-weight="900" fill="#DB2777" text-anchor="middle">★ 半加算器 (Half Adder) ★</text>
+
+        <!-- ================= WIRES ================= -->
+        <!-- Wire A Trunk -->
+        <path d="M 120 90 L 160 90" class="${wireAClass}" />
+
+        <!-- Wire A Branch to XOR (Top Gate) -->
+        <path d="M 160 90 L 230 90" class="${wireAClass}" />
+        <!-- Wire A Branch down to AND (Bottom Gate) -->
+        <path d="M 160 90 L 160 210 L 230 210" class="${wireAClass}" />
+        <!-- Solder Node A -->
+        <circle cx="160" cy="90" r="5" fill="${isAOn ? '#FFB800' : '#9CA3AF'}" stroke="#4A3B32" stroke-width="2" />
+
+        <!-- Wire B Trunk -->
+        <path d="M 120 230 L 180 230" class="${wireBClass}" />
+        <!-- Wire B Branch up to XOR (Top Gate) -->
+        <path d="M 180 230 L 180 120 L 230 120" class="${wireBClass}" />
+        <!-- Wire B Branch to AND (Bottom Gate) -->
+        <path d="M 180 230 L 230 230" class="${wireBClass}" />
+        <!-- Solder Node B -->
+        <circle cx="180" cy="230" r="5" fill="${isBOn ? '#FFB800' : '#9CA3AF'}" stroke="#4A3B32" stroke-width="2" />
+
+        <!-- Wire from XOR out to Sum Lamp S -->
+        <path d="M 335 105 L 470 105" class="${wireSumClass}" />
+
+        <!-- Wire from AND out to Carry Lamp C -->
+        <path d="M 335 220 L 470 220" class="${wireCarryClass}" />
+
+        <!-- ================= INPUT SWITCHES ================= -->
+        <!-- Switch A -->
+        <g class="cursor-pointer" onclick="toggleSwitch('A')">
+          <rect x="20" y="60" width="100" height="60" rx="12" fill="${isAOn ? '#FEF3C7' : '#F3F4F6'}" stroke="${isAOn ? '#F59E0B' : '#D1D5DB'}" stroke-width="3" />
+          <text x="70" y="85" font-size="13" font-weight="900" fill="#4A3B32" text-anchor="middle">入力 A (数1)</text>
+          <rect x="40" y="94" width="60" height="18" rx="9" fill="${isAOn ? '#10B981' : '#9CA3AF'}" />
+          <circle cx="${isAOn ? 86 : 54}" cy="103" r="7" fill="#FFFFFF" />
+          <text x="${isAOn ? 60 : 80}" y="107" font-size="10" font-weight="900" fill="#FFFFFF" text-anchor="middle">${isAOn ? '1' : '0'}</text>
+        </g>
+
+        <!-- Switch B -->
+        <g class="cursor-pointer" onclick="toggleSwitch('B')">
+          <rect x="20" y="200" width="100" height="60" rx="12" fill="${isBOn ? '#FEF3C7' : '#F3F4F6'}" stroke="${isBOn ? '#F59E0B' : '#D1D5DB'}" stroke-width="3" />
+          <text x="70" y="225" font-size="13" font-weight="900" fill="#4A3B32" text-anchor="middle">入力 B (数2)</text>
+          <rect x="40" y="234" width="60" height="18" rx="9" fill="${isBOn ? '#10B981' : '#9CA3AF'}" />
+          <circle cx="${isBOn ? 86 : 54}" cy="243" r="7" fill="#FFFFFF" />
+          <text x="${isBOn ? 60 : 80}" y="247" font-size="10" font-weight="900" fill="#FFFFFF" text-anchor="middle">${isBOn ? '1' : '0'}</text>
+        </g>
+
+        <!-- ================= GATES INSIDE ADDER ================= -->
+        <!-- Gate 1: XOR (Produces S: Sum) -->
+        <g transform="translate(10, 0)">
+          <path d="M 215 75 Q 235 105 215 135" fill="none" stroke="#4A3B32" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M 225 75 Q 245 105 225 135 Q 280 135 320 105 Q 280 75 225 75 Z" fill="#F3E8FF" stroke="#4A3B32" stroke-width="3.5" />
+          <text x="265" y="110" font-size="12" font-weight="900" fill="#6B21A8" text-anchor="middle">XOR</text>
+          <text x="265" y="68" font-size="10" font-weight="bold" fill="#7C3AED" text-anchor="middle">和 (S) を計算</text>
+        </g>
+
+        <!-- Gate 2: AND (Produces C: Carry) -->
+        <g transform="translate(10, 0)">
+          <path d="M 225 190 L 270 190 A 30 30 0 0 1 270 250 L 225 250 Z" fill="#FEF3C7" stroke="#4A3B32" stroke-width="3.5" />
+          <text x="260" y="225" font-size="12" font-weight="900" fill="#92400E" text-anchor="middle">AND</text>
+          <text x="260" y="183" font-size="10" font-weight="bold" fill="#B45309" text-anchor="middle">桁上がり (C) を計算</text>
+        </g>
+
+        <!-- ================= OUTPUT LAMPS (S & C) ================= -->
+        <!-- Sum Output S (1's place) -->
+        <g transform="translate(470, 75)">
+          <circle cx="30" cy="30" r="24" fill="${sum === 1 ? '#F472B6' : '#E5E7EB'}" stroke="#4A3B32" stroke-width="3" />
+          <text x="30" y="36" font-size="20" text-anchor="middle">${sum === 1 ? '🍓' : '⚪'}</text>
+          <text x="65" y="28" font-size="13" font-weight="900" fill="${sum === 1 ? '#BE185D' : '#6B7280'}">和 S = ${sum}</text>
+          <text x="65" y="44" font-size="10" font-weight="bold" fill="#9CA3AF">（答えの1桁目）</text>
+        </g>
+
+        <!-- Carry Output C (2's place) -->
+        <g transform="translate(470, 190)">
+          <circle cx="30" cy="30" r="24" fill="${carry === 1 ? '#FBBF24' : '#E5E7EB'}" stroke="#4A3B32" stroke-width="3" />
+          <text x="30" y="36" font-size="20" text-anchor="middle">${carry === 1 ? '👑' : '⚪'}</text>
+          <text x="65" y="28" font-size="13" font-weight="900" fill="${carry === 1 ? '#B45309' : '#6B7280'}">桁上 C = ${carry}</text>
+          <text x="65" y="44" font-size="10" font-weight="bold" fill="#9CA3AF">（答えの2桁目）</text>
+        </g>
+      `;
+    }
+
+    // ============================================================
+    // GAME MODE LOGIC
+    // ============================================================
+    const QUESTION_BANK = [
+      {
+        question: "【基本】入力 A=1, B=1 のときだけ、出力が「1」になる基本回路はどれ？",
+        speech: "「オイラは両方の電線から電気が流れないと動かないぞ〜！」",
+        monsterType: "slime",
+        choices: ["AND回路", "OR回路", "NOT回路", "NOR回路"],
+        correct: 0,
+        exp: "すべて1のときだけ電気が流れるのは「AND回路（論理積・直列つなぎ）」です！"
+      },
+      {
+        question: "【基本】入力の「どれか1つでも1」なら、出力が「1」になる回路はどれ？",
+        speech: "「片方の線だけでも電気が通れば満足だ〜！」",
+        monsterType: "cat",
+        choices: ["OR回路", "AND回路", "XOR回路", "NAND回路"],
+        correct: 0,
+        exp: "いずれか1つでも1なら出力が1になるのは「OR回路（論理和・並列つなぎ）」です！"
+      },
+      {
+        question: "【へそまがり】入力が「0」のときに出力が「1」になる回路はどれ？",
+        speech: "「スイッチを押してないのに電気がつく不思議なヤツは誰だ！？」",
+        monsterType: "ghost",
+        choices: ["NOT回路", "AND回路", "OR回路", "半加算器"],
+        correct: 0,
+        exp: "入力と反対の結果（0→1, 1→0）を出すのは「NOT回路（論理否定）」です！"
+      },
+      {
+        question: "【頻出】2つの入力が「異なるときだけ1」になる回路はどれ？",
+        speech: "「ケーキは1個だけ！両方(1,1)もお預け(0,0)もダメだぞ〜！」",
+        monsterType: "bear",
+        choices: ["XOR回路", "AND回路", "OR回路", "NOR回路"],
+        correct: 0,
+        exp: "入力が異なるとき(0と1, 1と0)に出力が1になるのは「XOR回路（排他的論理和）」！"
+      },
+      {
+        question: "【2進数の足し算】1 ＋ 1 を計算したとき、2進数での結果は？",
+        speech: "「1と1を足したら桁が上がるぞ！何になる！？」",
+        monsterType: "slime",
+        choices: ["10 (イチゼロ)", "2", "11", "0"],
+        correct: 0,
+        exp: "2進法では2になると桁が上がるので、1+1=10(イチゼロ)になります！"
+      },
+      {
+        question: "【半加算器】足し算で、和(S)を計算するために使われている回路は？",
+        speech: "「半加算器の内部で和(S)を求めているゲートはどれだ？」",
+        monsterType: "robot",
+        choices: ["XOR回路", "AND回路", "NOT回路", "OR回路"],
+        correct: 0,
+        exp: "半加算器の和Sは「XOR回路」、桁上がりCは「AND回路」で計算します！"
+      },
+      {
+        question: "【応用】AND回路の出力を「NOT」で逆にした回路の名前は？",
+        speech: "「ANDの否定（NOT AND）といえば何の回路だッ！？」",
+        monsterType: "ghost",
+        choices: ["NAND回路", "NOR回路", "XOR回路", "IC回路"],
+        correct: 0,
+        exp: "ANDの否定（NOT AND）だから「NAND（ナンド）回路」です！"
+      },
+      {
+        question: "【教科書知識】素子と配線を一体化して基板に配置した部品は？",
+        speech: "「パソコンの頭脳CPUもこれの一種なんだぞ〜！」",
+        monsterType: "robot",
+        choices: ["集積回路 (IC)", "ダイオード", "乾電池", "LED"],
+        correct: 0,
+        exp: "多数の素子と配線を1つにまとめたものを「集積回路（IC: Integrated Circuit）」と呼びます！"
+      }
+    ];
+
+    function getMonsterSvg(type) {
+      if (type === 'slime') {
+        return `
+          <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <ellipse cx="50" cy="65" rx="38" ry="28" fill="#B3E5FC" stroke="#4A3B32" stroke-width="4"/>
+            <path d="M 16 65 Q 50 10 84 65 Z" fill="#B3E5FC" stroke="#4A3B32" stroke-width="4"/>
+            <circle cx="38" cy="58" r="4" fill="#4A3B32"/>
+            <circle cx="62" cy="58" r="4" fill="#4A3B32"/>
+            <ellipse cx="28" cy="62" rx="6" ry="3" fill="#81D4FA"/>
+            <ellipse cx="72" cy="62" rx="6" ry="3" fill="#81D4FA"/>
+            <path d="M 46 64 Q 50 68 54 64" stroke="#4A3B32" stroke-width="2.5" fill="none"/>
+          </svg>
+        `;
+      } else if (type === 'ghost') {
+        return `
+          <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow animate-hop">
+            <path d="M 20 50 A 30 30 0 0 1 80 50 L 80 82 Q 70 74 60 82 Q 50 74 40 82 Q 30 74 20 82 Z" fill="#F8BBD0" stroke="#4A3B32" stroke-width="4"/>
+            <ellipse cx="37" cy="48" rx="4" ry="5.5" fill="#4A3B32"/>
+            <ellipse cx="63" cy="48" rx="4" ry="5.5" fill="#4A3B32"/>
+            <ellipse cx="50" cy="58" rx="5" ry="6" fill="#D81B60"/>
+            <ellipse cx="27" cy="54" rx="5" ry="3" fill="#FF80AB"/>
+            <ellipse cx="73" cy="54" rx="5" ry="3" fill="#FF80AB"/>
+          </svg>
+        `;
+      } else {
+        return `
+          <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <rect x="25" y="30" width="50" height="46" rx="14" fill="#FFE082" stroke="#4A3B32" stroke-width="4"/>
+            <ellipse cx="30" cy="22" rx="8" ry="12" fill="#FFE082" stroke="#4A3B32" stroke-width="3"/>
+            <ellipse cx="70" cy="22" rx="8" ry="12" fill="#FFE082" stroke="#4A3B32" stroke-width="3"/>
+            <circle cx="40" cy="50" r="4" fill="#4A3B32"/>
+            <circle cx="60" cy="50" r="4" fill="#4A3B32"/>
+            <path d="M 46 58 Q 50 63 54 58" stroke="#4A3B32" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <ellipse cx="30" cy="56" rx="5" ry="3" fill="#FFB74D"/>
+            <ellipse cx="70" cy="56" rx="5" ry="3" fill="#FFB74D"/>
+          </svg>
+        `;
+      }
+    }
+
+    function startGame() {
+      playSound('correct');
+      document.getElementById('gameStartPanel').classList.add('hidden');
+      document.getElementById('gameResultPanel').classList.add('hidden');
+      document.getElementById('gamePlayPanel').classList.remove('hidden');
+
+      gameScore = 0;
+      correctCount = 0;
+      timeLeft = 35;
+      currentQuestionIndex = 0;
+
+      currentQuestions = [...QUESTION_BANK].sort(() => Math.random() - 0.5);
+
+      updateGameHeader();
+      loadQuestion();
+
+      if (gameTimerInterval) clearInterval(gameTimerInterval);
+      gameTimerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('gameTimer').innerText = timeLeft;
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function updateGameHeader() {
+      document.getElementById('gameTimer').innerText = timeLeft;
+      document.getElementById('gameScore').innerText = gameScore;
+      document.getElementById('gameRound').innerText = currentQuestionIndex + 1;
+    }
+
+    function loadQuestion() {
+      if (currentQuestionIndex >= currentQuestions.length) {
+        endGame();
+        return;
+      }
+
+      updateGameHeader();
+
+      const q = currentQuestions[currentQuestionIndex];
+      document.getElementById('questionBody').innerText = q.question;
+      document.getElementById('monsterSpeech').innerText = q.speech;
+      document.getElementById('monsterSprite').innerHTML = getMonsterSvg(q.monsterType);
+
+      const choicesWrap = document.getElementById('choicesContainer');
+      choicesWrap.innerHTML = '';
+
+      const choiceObjects = q.choices.map((text, idx) => ({ text, isCorrect: idx === q.correct }));
+      choiceObjects.sort(() => Math.random() - 0.5);
+
+      choiceObjects.forEach((choice) => {
+        const btn = document.createElement('button');
+        btn.className = "py-3.5 px-3 rounded-2xl bg-white border-2 border-orange-200 hover:border-pink-400 font-black text-xs sm:text-sm text-[#5C3826] shadow-cute hover:bg-pink-50 transition active:scale-95 text-center";
+        btn.innerText = choice.text;
+        btn.onclick = () => handleAnswer(choice.isCorrect, q.exp);
+        choicesWrap.appendChild(btn);
+      });
+
+      const fb = document.getElementById('answerFeedback');
+      fb.classList.add('hidden');
+    }
+
+    function handleAnswer(isCorrect, explanation) {
+      const fb = document.getElementById('answerFeedback');
+      fb.classList.remove('hidden');
+
+      const btns = document.querySelectorAll('#choicesContainer button');
+      btns.forEach(b => b.disabled = true);
+
+      if (isCorrect) {
+        playSound('correct');
+        gameScore += 100 + timeLeft * 2;
+        correctCount++;
+        fb.className = "p-3 rounded-2xl text-center text-xs font-black bg-pink-100 text-pink-800 border border-pink-300 animate-bounce";
+        fb.innerHTML = `✨ 大正解ッ…！わァ…！ (+${100 + timeLeft * 2}点)<br><span class="text-[11px] font-medium text-pink-700">${explanation}</span>`;
+      } else {
+        playSound('wrong');
+        fb.className = "p-3 rounded-2xl text-center text-xs font-black bg-gray-100 text-gray-700 border border-gray-300";
+        fb.innerHTML = `🌀 おしいッ！<br><span class="text-[11px] font-medium text-gray-600">${explanation}</span>`;
+      }
+
+      document.getElementById('gameScore').innerText = gameScore;
+
+      setTimeout(() => {
+        currentQuestionIndex++;
+        loadQuestion();
+      }, 1600);
+    }
+
+    function endGame() {
+      if (gameTimerInterval) clearInterval(gameTimerInterval);
+      playSound('clear');
+
+      document.getElementById('gamePlayPanel').classList.add('hidden');
+      document.getElementById('gameResultPanel').classList.remove('hidden');
+
+      document.getElementById('finalScore').innerText = gameScore;
+      document.getElementById('finalCorrect').innerText = correctCount;
+      document.getElementById('finalTotal').innerText = currentQuestions.length;
+
+      let rank = "【見習い回路士】";
+      let emoji = "🌱";
+      let sub = "0と1の世界の冒険が始まったばかり！";
+
+      if (gameScore >= 1200) {
+        rank = "【超論理・情報Iマスター級】👑";
+        emoji = "🎉✨";
+        sub = "す、すごすぎるッ…！高校の論理回路テストは100点間違いなしッ！";
+      } else if (gameScore >= 800) {
+        rank = "【凄腕ゲート討伐士】🍰";
+        emoji = "🌟";
+        sub = "素晴らしい！配線の流れと真理値表をバッチリ使いこなせてるよ！";
+      } else if (gameScore >= 400) {
+        rank = "【草むしり検定・論理級】🍡";
+        emoji = "👏";
+        sub = "あと一歩！配線ラボでスイッチを動かして復習してみよう！";
+      }
+
+      document.getElementById('resultRank').innerText = rank;
+      document.getElementById('resultEmoji').innerText = emoji;
+      document.getElementById('resultSubtitle').innerText = sub;
+    }
+
+    // Init on window load
+    window.onload = function() {
+      renderLab();
+    };
+  </script>
+</body>
+</html>
